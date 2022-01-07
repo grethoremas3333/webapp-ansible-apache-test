@@ -1,0 +1,18 @@
+---
+- name: "Installation du Serveur Apache"
+  hosts: prod
+  become: true
+#  vars:
+#    ansible_sudo_pass: ubuntu
+  pre_tasks:
+    - name: Installation de Python-pip
+      apt: name=python-pip state=present update_cache=yes
+    - name: Installation de Python dans Conteneur Docker
+      pip: name=docker-py 
+  tasks:
+    - name: Creation du containeur Apache
+      docker_container:
+        name: serveur_apache
+        image: httpd
+        ports:
+          - "80:80"
