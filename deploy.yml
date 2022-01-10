@@ -2,17 +2,29 @@
 - name: "Installation du Serveur Apache"
   hosts: prod
   become: true
-#  vars:
-#    ansible_sudo_pass: ubuntu
+  vars_files:
+    - files/secrets/credentials.yml
   pre_tasks:
-    - name: Installation de Python-pip
+    - name: Installation de QQ packages
+      package: name='{{ item }}' state=present
+      when: ansible_distribution == "Ubuntu"
+      loop:
+        - wget
+        - git
+    - name: Installation de python-pip  
       apt: name=python-pip state=present update_cache=yes
     - name: Installation de Python dans Conteneur Docker
       pip: name=docker-py 
   tasks:
+    - name: Copie des fichiers du WebSite
+      template:
+        src: index.html.j2
+        dest: /home/ubuntu/index.html
     - name: Creation du containeur Apache
       docker_container:
         name: serveur_apache
         image: httpd
         ports:
           - "80:80"
+        volumes:
+          - /home/ubuntu/index.html:/usr/local/apache2/htdocs/index.html
